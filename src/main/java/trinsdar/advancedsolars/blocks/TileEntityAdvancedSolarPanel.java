@@ -130,13 +130,14 @@ public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
     }
     
     public double getMultiplier() {
-        if (isInOrbitOfStar()) return 10.0;
-        if (isInOrbitOfBlackhole()) return 0.01;
-        if (getOrbitalDist() == -1) return 0.0;
-        if (isInFTL()) return 0.0;
-        if (isInSpace() ) return 2/getOrbitalDist();
-        if (!isInSpace() ) return 1/getOrbitalDist();
-        return 0.0;
+        return 1.0;
+//        if (isInOrbitOfStar()) return 10.0;
+//        if (isInOrbitOfBlackhole()) return 0.01;
+//        if (getOrbitalDist() == -1) return 0.0;
+//        if (isInFTL()) return 0.0;
+//        if (isInSpace() ) return 2/getOrbitalDist();
+//        if (!isInSpace() ) return 1/getOrbitalDist();
+//        return 0.0;
     }
     
     public boolean isInOrbitOfBlackhole() {
