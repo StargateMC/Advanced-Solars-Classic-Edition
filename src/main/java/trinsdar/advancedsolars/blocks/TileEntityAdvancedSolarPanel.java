@@ -25,6 +25,9 @@ import org.jetbrains.annotations.NotNull;
 import trinsdar.advancedsolars.AdvancedSolarsClassic;
 import trinsdar.advancedsolars.util.AdvancedSolarLang;
 import trinsdar.advancedsolars.util.AdvancedSolarsConfig;
+import zmaster587.advancedRocketry.dimension.DimensionManager;
+import zmaster587.advancedRocketry.stations.SpaceObjectManager;
+import zmaster587.advancedRocketry.stations.SpaceStationObject;
 
 public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
     double config;
@@ -69,28 +72,98 @@ public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
     public int getMaxOutput(){
         return maxOutput;
     }
-
+    
+    public double getProduction() {
+        return this.production * this.getMultiplier();
+    }
+    
+    public double getLowerProduction() {
+        return this.lowerProduction * this.getMultiplier();
+    }
     @Override
     public boolean isConverting() {
         if (this.skyBlockCheck()){
             if (isSunVisible()){
-                return this.storage + this.production <= this.maxStorage;
+                return this.storage + this.getProduction() <= this.maxStorage;
             }else {
-                return this.storage + this.lowerProduction <= this.maxStorage;
+                return this.storage + this.getLowerProduction() <= this.maxStorage;
             }
         }else {
             return false;
         }
     }
 
+    public boolean isInSpace() {
+        return this.world.provider.getDimension() == -2;
+    }
+
+    public boolean isInFTL() {
+            if (isInSpace()) {
+                SpaceStationObject object = (SpaceStationObject)SpaceObjectManager.getSpaceManager().getSpaceStationFromBlockCoords(this.getPos());
+                if (object != null) {
+                    if (object.isInFTL()) return true;
+                }
+                return false;
+            } else {
+                return false;
+            }
+    }
+    
+    public int getOrbitalDist() {
+        if (isInSpace()) {
+        SpaceStationObject object = (SpaceStationObject)SpaceObjectManager.getSpaceManager().getSpaceStationFromBlockCoords(this.getPos());
+            if (object != null) {
+                if (object.isInFTL()) return -1;
+                return object.getOrbitingPlanet().getOrbitalDist();
+            } else {
+                return -1;
+            }
+        }
+        return -1;
+    }
+    
+    public double getMultiplier() {
+        if (isInOrbitOfStar()) return 10.0;
+        if (isInOrbitOfBlackhole()) return 0.01;
+        if (getOrbitalDist() == -1) return 0.0;
+        if (isInFTL()) return 0.0;
+        if (isInSpace() ) return 2/getOrbitalDist();
+        if (!isInSpace() ) return 1/getOrbitalDist();
+        return 0.0;
+    }
+    
+    public boolean isInOrbitOfBlackhole() {
+        if (!isInSpace()) return false;
+        SpaceStationObject object = (SpaceStationObject)SpaceObjectManager.getSpaceManager().getSpaceStationFromBlockCoords(this.getPos());
+        if (object != null) {
+            if (object.isInFTL()) return false;
+            if (object.getOrbitingPlanet().isStar() && object.getOrbitingPlanet().hasBlackHole()) return true;
+        } else {
+            return false;
+        }
+        return false;
+    }
+    
+    public boolean isInOrbitOfStar() {
+        if (!isInSpace()) return false;
+        SpaceStationObject object = (SpaceStationObject)SpaceObjectManager.getSpaceManager().getSpaceStationFromBlockCoords(this.getPos());
+        if (object != null) {
+            if (object.isInFTL()) return false;
+            if (object.getOrbitingPlanet().isStar() && !object.getOrbitingPlanet().hasBlackHole()) return true;
+        } else {
+            return false;
+        }
+        return false;
+    }
+    
     @Override
     public boolean gainEnergy() {
         if (this.isConverting()) {
             if (this.skyBlockCheck()){
                 if (isSunVisible()){
-                    this.storage += this.production;
+                    this.storage += this.getProduction();
                 }else {
-                    this.storage += this.lowerProduction;
+                    this.storage += this.getLowerProduction();
                 }
             }
             return true;
@@ -117,9 +190,9 @@ public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
     @Override
     public double getOfferedEnergy() {
         if (isSunVisible()){
-            return (double)Math.min(this.storage, this.production);
+            return (double)Math.min(this.storage, this.getProduction());
         }else {
-            return Math.min(this.storage, this.lowerProduction);
+            return Math.min(this.storage, this.getLowerProduction());
         }
 
     }
@@ -176,9 +249,9 @@ public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
     public int getOutput() {
         if (skyBlockCheck()){
             if (isSunVisible()){
-                return (int)(this.production * this.config);
+                return (int)(this.getProduction() * this.config);
             }else {
-                return (int)(this.lowerProduction * this.config);
+                return (int)(this.getLowerProduction() * this.config);
             }
         }else {
             return 0;
