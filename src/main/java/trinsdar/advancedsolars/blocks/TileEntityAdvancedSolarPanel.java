@@ -26,6 +26,7 @@ import trinsdar.advancedsolars.AdvancedSolarsClassic;
 import trinsdar.advancedsolars.util.AdvancedSolarLang;
 import trinsdar.advancedsolars.util.AdvancedSolarsConfig;
 import zmaster587.advancedRocketry.dimension.DimensionManager;
+import zmaster587.advancedRocketry.dimension.DimensionProperties;
 import zmaster587.advancedRocketry.stations.SpaceObjectManager;
 import zmaster587.advancedRocketry.stations.SpaceStationObject;
 
@@ -118,8 +119,14 @@ public class TileEntityAdvancedSolarPanel extends TileEntityGeneratorBase {
             } else {
                 return -1;
             }
+        } else {
+            DimensionProperties props = DimensionManager.getEffectiveDimId(this.world, this.getPos());
+            if (props != null) {
+                return props.getOrbitalDist();
+            } else {
+                return -1;
+            }
         }
-        return -1;
     }
     
     public double getMultiplier() {
